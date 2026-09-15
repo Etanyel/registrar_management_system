@@ -24,7 +24,8 @@ $routes->group('', ['filter' => 'auth'], function ($routes) {
         $routes->get('/registrar/manage-enrollment', 'Registrar\ManageEnrollment::index');
         $routes->post('/registrar/manage-enrollment', 'Registrar\ManageEnrollment::enroll');
         $routes->get('/registrar/manage-enrollment/records', 'Registrar\ManageEnrollment::getRecords');
-        $routes->get('/registrar/manage-enrollment/(:num)', 'Registrar\ManageEnrollment::viewRecord/$1');
+        $routes->get('/registrar/manage-enrollment/(:segment)', 'Registrar\ManageEnrollment::viewRecord/$1');
+        $routes->get('/registrar/manage-enrollment/get-record/(:segment)', 'Registrar\ManageEnrollment::getRecord/$1');
 
         $routes->get('/registrar/manage-schedules', 'Registrar\ManageSchedule::index');
 

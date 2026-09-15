@@ -67,7 +67,7 @@ Enrollment
                             </span>
 
                             <input type="text" class="form-control" placeholder="Search student number or name..."
-                                name="student_search">
+                                name="student_search" x-model="search">
 
                             <button type="button" class="btn btn-primary">
                                 Search
@@ -282,7 +282,7 @@ Enrollment
                                     </label>
 
                                     <input type="text" class="form-control" placeholder="09XXXXXXXXX"
-                                        x-model="form.contact_no" max_length="11">
+                                        x-model="form.contact_no" maxlength="11">
 
                                 </div>
 
@@ -347,7 +347,7 @@ Enrollment
                                             $startYear = $currentYear + $i;
                                             $endYear = $startYear + 1;
                                             $academicYear = $startYear . '-' . $endYear;
-                                            ?>
+                                        ?>
 
                                             <option value="<?= $academicYear ?>">
                                                 <?= $academicYear ?>
@@ -572,7 +572,7 @@ Enrollment
                                             $startYear = $currentYear + $i;
                                             $endYear = $startYear + 1;
                                             $academicYear = $startYear . '-' . $endYear;
-                                            ?>
+                                        ?>
 
                                             <option value="<?= $academicYear ?>">
                                                 <?= $academicYear ?>
@@ -688,7 +688,7 @@ Enrollment
                             Clear
                         </button>
 
-                        <button type="submit" class="btn btn-primary" :disabled="loading">
+                        <button type="submit" class="btn btn-primary" :disabled="loading || form.semester == ''; form.academic_year == '';">
                             <template x-if="!loading">
                                 <span>
                                     <i class="bi bi-check2-circle me-1"></i>
@@ -740,7 +740,7 @@ Enrollment
                         <tbody>
 
                             <template x-for="record in records" :key="record.id">
-                                <tr style="cursor: pointer;" class="text-center" @click="window.location.href='<?= base_url('/registrar/manage-enrollment/') ?>' + record.id">
+                                <tr style="cursor: pointer;" class="text-center" @click="window.location.href='<?= site_url('/registrar/manage-enrollment/') ?>' + record.student_id">
 
                                     <td class="px-3 fw-medium" x-text="record.student_id"></td>
 
@@ -774,7 +774,7 @@ Enrollment
                                     </td>
 
                                     <td class="text-center">
-                                        <span x-text="record.created_at" class=""></span>
+                                        <span x-text="formatDate(record.created_at)" class=""></span>
                                     </td>
 
                                 </tr>
@@ -837,176 +837,6 @@ Enrollment
 
 
 
-<script>
-    document.addEventListener('alpine:init', () => {
-
-        Alpine.data('registrarEnrollment', () => ({
-
-            enrollMode: false,
-            errors: {},
-            loading: false,
-            records: {},
-            form: {
-                student_id: '',
-                firstname: '',
-                lastname: '',
-                middlename: '',
-                suffix: '',
-                sex: '',
-                birthdate: '',
-                email: '',
-                contact_no: '',
-                contact_person: '',
-                address: '',
-                course: '',
-                section: '',
-                student_type: '',
-                year_level: '',
-                academic_year: '',
-                semester: '',
-
-            },
-
-            init() {
-                this.getNewEnrollment();
-            },
-
-            course: {
-                1: 'DPIT',
-                2: 'DPTHT',
-                3: 'DPET',
-                4: 'DPFT',
-                5: 'DPWT',
-            },
-            student_type: {
-                'new' : 'badge text-bg-primary text-capitalize',
-                'transferee' : 'badge text-bg-warning text-capitalize',
-                'returning' : 'badge text-bg-success text-capitalize',
-            },
-            async enroll() {
-
-                this.loading = true;
-                this.errors = {};
-
-                try {
-
-                    const formData = new FormData();
-
-                    formData.append('student_id', this.form.student_id);
-                    formData.append('firstname', this.form.firstname);
-                    formData.append('lastname', this.form.lastname);
-                    formData.append('middlename', this.form.middlename);
-                    formData.append('suffix', this.form.suffix);
-                    formData.append('sex', this.form.sex);
-                    formData.append('birthdate', this.form.birthdate);
-                    formData.append('email', this.form.email);
-                    formData.append('contact_no', this.form.contact_no);
-                    formData.append('contact_person', this.form.contact_person);
-                    formData.append('address', this.form.address);
-                    formData.append('course', this.form.course);
-                    formData.append('section', this.form.section);
-                    formData.append('student_type', this.form.student_type);
-                    formData.append('year_level', this.form.year_level);
-                    formData.append('academic_year', this.form.academic_year);
-                    formData.append('semester', this.form.semester);
-
-                    const res = await fetch(
-                        '<?= base_url('registrar/manage-enrollment') ?>',
-                        {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
-                        }
-                    );
-
-                    const data = await res.json();
-
-                    if (!res.ok) {
-                        throw new Error(data.message || 'Enrollment failed.');
-                    }
-
-                    if (data.status === 200) {
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Enrollment Successful',
-                            text: data.message,
-                            confirmButtonText: 'OK'
-                        });
-
-                        this.resetForm();
-
-                    } else {
-
-                        this.errors = data.errors || {};
-
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Enrollment Failed',
-                            text: data.message || 'Please check the form.'
-                        });
-
-                    }
-
-                } catch (error) {
-
-                    console.error(error);
-
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Something went wrong',
-                        text: error.message || 'Unable to process the enrollment.'
-                    });
-
-                } finally {
-
-                    this.loading = false;
-
-                }
-            },
-
-            resetForm() {
-                this.form = {
-                    student_id: '',
-                    firstname: '',
-                    lastname: '',
-                    middlename: '',
-                    suffix: '',
-                    sex: '',
-                    birthdate: '',
-                    email: '',
-                    contact_no: '',
-                    contact_person: '',
-                    address: '',
-                    course_id: '',
-                    section: '',
-                    student_type: '',
-                    year_level: '',
-                    academic_year: '',
-                    semester: '',
-                };
-
-                this.errors = {};
-                this.enrollMode = false;
-            },
-
-            async getNewEnrollment() {
-                const res = await fetch(`<?= base_url('/registrar/manage-enrollment/records') ?>`);
-
-                const data = await res.json();
-
-                if (data.records) {
-                    this.records = data.records;
-                    console.log(this.records);
-                }
-            },
-
-        }));
-
-    });
-
-</script>
+<script src="<?= base_url() ?>js/enrollment.min.js"></script>
 
 <?= $this->endSection() ?>

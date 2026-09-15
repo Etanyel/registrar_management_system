@@ -331,7 +331,6 @@ class ManageEnrollment extends BaseController
                 'status' => 200,
                 'message' => 'Student successfully enrolled.'
             ]);
-
         } catch (\Exception $e) {
             return $this->response->setJSON([
                 'status' => 500,
@@ -403,9 +402,9 @@ class ManageEnrollment extends BaseController
                 students.middlename,
                 students.id,
                 students.status,
-            ')->join('students', 'students.student_id = enrollments.student_id', 'left')
-                ->join('course', 'course.id = enrollments.course_id', 'left')
-                ->where('MONTH(enrollments.created_at)', date('m'))
+            ')->join('students', 'students.student_id = enrollments.student_id')
+                ->join('course', 'course.id = enrollments.course_id')
+                ->where('enrollments.created_at >=', date('Y-m-d H:i:s', strtotime('-3 months')))
                 ->where('YEAR(enrollments.created_at)', date('Y'))
                 ->where('students.status', 'active')->findAll();
 
@@ -413,7 +412,6 @@ class ManageEnrollment extends BaseController
                 'status' => 200,
                 'records' => $records
             ]);
-
         } catch (\Throwable $e) {
 
             return $this->response
@@ -429,7 +427,6 @@ class ManageEnrollment extends BaseController
     {
         try {
             return view('registrar/registrar-enrollment/registrar-view-record', ['record_id' => $id]);
-
         } catch (\Throwable $e) {
             return $this->response
                 ->setStatusCode(500)
@@ -442,23 +439,39 @@ class ManageEnrollment extends BaseController
 
     public function getRecord($id)
     {
-        try{
-        $model = new Enrollment();
-        $data = $model->select(
-            'enrollments.*, 
-            course.course_name,
-            students.firstname,
-            students.lastname,
-            students.middlename,
-            students.id,
-            students.status,')
-            ->join('course','course.id = enrollments.course_id')
-            ->join('students','students.student_id = enrollments.student_id')
-            ->where('enrollments.id', $id)->first();
+        try {
+            $model = new Enrollment();
+            $data = $model->select(
+                'enrollments.*, 
+                course.course_name,
+                students.firstname,
+                students.lastname,
+                students.middlename,
+                students.id,
+                students.status AS student_status,
+                students.email,
+                students.suffix,
+                students.sex,
+                students.birthdate,
+                students.contact_no,
+                students.address,
+                students.photo,
+                users.username'
+            )
+                ->join('course', 'course.id = enrollments.course_id', 'left')
+                ->join('students', 'students.student_id = enrollments.student_id', 'left')
+                ->join('users', 'users.id = enrollments.enrolled_by', 'left')
+                ->where('enrollments.student_id', $id)->first();
 
-        
-        }catch(\Throwable $e){
-
+            return $this->response->setJSON([
+                'status' => 200,
+                'record' => $data
+            ]);
+        } catch (\Throwable $e) {
+            return $this->response->setJSON([
+                'status' => 500,
+                'message' => $e->getMessage()
+            ]);
         }
     }
 }

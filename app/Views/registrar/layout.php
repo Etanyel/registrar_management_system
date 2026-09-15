@@ -303,7 +303,7 @@
 
 
         <!-- PAGE CONTENT -->
-        <main class="page-content">
+        <main class="page-content" x-data="mainLayout">
 
             <?= $this->renderSection('content'); ?>
 
@@ -314,6 +314,21 @@
     <script src="<?= base_url('sweetalert2/dist/sweetalert2.all.min.js') ?>"></script>
     <script src="<?= base_url('bootstrap/dist/js/bootstrap.bundle.min.js') ?>"></script>
 
+    <script>
+        function mainLayout() {
+            return {
+                formatDate(date) {
+                    if (!date) return "";
+
+                    return new Date(date).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "2-digit",
+                        year: "numeric",
+                    });
+                },
+            }
+        }
+    </script>
 </body>
 
 </html>
